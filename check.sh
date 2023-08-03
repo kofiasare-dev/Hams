@@ -7,6 +7,8 @@ CHECK_INTERVAL=1800 #seconds
 HEROKU_ICON_PATH="/usr/share/icons/heroku/legacy.png"
 UP_SOUND="/usr/share/sounds/freedesktop/stereo/service-login.oga"
 DOWN_SOUND="/usr/share/sounds/freedesktop/stereo/service-logout.oga"
+LOG_FILE="/home/kofiasare/Desktop/.heroku_app_checker/log/$APP_NAME.log" # Set the desired log file path
+
 
 send_notification() {
     local sound=$1
@@ -19,7 +21,7 @@ restart_app() {
     echo "Restarting Heroku app..."
     heroku restart --app $APP_NAME
     timestamp=$(date +"%Y-%m-%d %H:%M:%S")
-    echo "[$timestamp] - Heroku app restarted."
+    echo "[$timestamp] - Heroku app restarted." >> "$LOG_FILE"
 }
 
 check_internet_connection() {
@@ -34,7 +36,7 @@ check_internet_connection() {
         fi
 
         retries=$((retries + 1))
-        echo "Connection attempt $retries failed. Retrying in $backoff_time seconds..."
+        echo "Connection attempt $retries failed. Retrying in $backoff_time seconds..." >> $LOG_FILE
         sleep $backoff_time
 
         # Increase backoff time for the next retry (exponential backoff)
@@ -62,9 +64,9 @@ check_app_status() {
 # Infinite loop to check the status intermittently
 while true; do
     timestamp=$(date +"%Y-%m-%d %H:%M:%S")
-    echo "[$timestamp] - Checking the status of the Heroku app..."
+    echo "[$timestamp] - Checking the status of the Heroku app..." >> $LOG_FILE
     check_app_status
     next_run=$(date -d "+$CHECK_INTERVAL seconds" +"%Y-%m-%d %H:%M:%S")
-    echo "[$timestamp] - Next run: $next_run"
+    echo "[$timestamp] - Next run: $next_run" >> $LOG_FILE
     sleep $CHECK_INTERVAL
 done
