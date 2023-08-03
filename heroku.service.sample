@@ -1,0 +1,14 @@
+# sudo vim /etc/systemd/system/heroku.service
+
+[Unit]
+Description=Heroku App Checker
+After=network.target
+
+[Service]
+User=kofiasare
+Environment="PULSE_SERVER=unix:/run/user/1000/pulse/native"
+ExecStart=/home/kofiasare/Desktop/.heroku_app_checker/check.sh
+WorkingDirectory=/home/kofiasare/Desktop/.heroku_app_checker
+
+[Install]
+WantedBy=multi-user.target
