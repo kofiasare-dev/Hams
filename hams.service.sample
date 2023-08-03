@@ -1,0 +1,16 @@
+# sudo vim /etc/systemd/system/hams.service
+# copy this to the unit file
+
+[Unit]
+Description=Heroku application management service
+After=network.target
+
+[Service]
+User=<your-username>
+Environment="PULSE_SERVER=unix:/run/user/1000/pulse/native"
+ExecStart=<absolute-path-to-hams.sh>
+WorkingDirectory=<absolute-path-hams-directory>
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
