@@ -70,20 +70,20 @@ check_app_state() {
     fi
 }
 
-# Infinite loop to check the status intermittently
+# infinite loop to check the status intermittently
 while true; do
     log "$HAMS_APP" "Checking the status of the Heroku app..."
     check_app_state "$HAMS_APP"
 
     case $? in
-        0)
+        0)  # up
             notify_with_log "$HAMS_APP" "$UP_SOUND"  "✅ API is up and running!"
             ;;
-        1)
+        1)  # down
             notify_with_log "$HAMS_APP" "$DOWN_SOUND" "❌ API is not responding! Trying to restart..."
             restart_app $HAMS_APP
             ;;
-        2)
+        2)  # can't connect
             notify_with_log  "$HAMS_APP" "$DOWN_SOUND" "❌ No internet connection! Check your internet connection"
             ;;
 
