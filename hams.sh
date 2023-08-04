@@ -4,7 +4,7 @@ export DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-unix:path=/run/user
 
 # Configurations
 HAMS_APP="${HAMS_APP:-achieve-api-staging}"
-HAMS_INTERVAL="${HAMS_INTERVAL:-15}" # seconds
+HAMS_INTERVAL="${HAMS_INTERVAL:-1200}" # seconds
 HEROKU_ICON_PATH="/usr/share/icons/heroku/legacy.png"
 UP_SOUND="/usr/share/sounds/freedesktop/stereo/service-login.oga"
 DOWN_SOUND="/usr/share/sounds/freedesktop/stereo/service-logout.oga"
@@ -56,7 +56,7 @@ can_connect_to() {
     return 1
 }
 
-check_app_status() {
+check_app_state() {
     local app=$1
 
     if can_connect_to "$app"; then
@@ -73,7 +73,7 @@ check_app_status() {
 # Infinite loop to check the status intermittently
 while true; do
     log "$HAMS_APP" "Checking the status of the Heroku app..."
-    check_app_status "$HAMS_APP"
+    check_app_state "$HAMS_APP"
 
     case $? in
         0)
