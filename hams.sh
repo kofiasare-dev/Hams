@@ -13,7 +13,7 @@ LOG_FILE="/home/kofiasare/Desktop/.hams/log/$HAMS_APP.log"
 log() {
     local message=$1
     timestamp=$(date +"%Y-%m-%d %H:%M:%S")
-    echo "$HAMS_APP | [$timestamp] - $message" >> $LOG_FILE
+    echo "$HAMS_APP | [$timestamp] - $message" > $LOG_FILE
 }
 
 send_notification() {
