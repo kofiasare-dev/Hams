@@ -29,9 +29,9 @@ notify_with_log() {
 restart_app() {
     local app=$1
 
-    log "Restarting Heroku app..."
+    log "$app" "Restarting Heroku app..."
     heroku ps:restart --app $app
-    log "Heroku app restarted."
+    log "$app" "Heroku app restarted."
 }
 
 can_connect_to() {
