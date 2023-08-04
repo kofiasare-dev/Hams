@@ -28,12 +28,12 @@ Check the log file (if specified) for detailed information about the script's ac
 
 3. Set the necessary environment variables:
 
-   - `APP_NAME`: The name of the Heroku app you want to monitor.
+   - `HAMS_APP`: The name of the Heroku app you want to monitor.
    - `CHECK_INTERVAL`: The time interval (in seconds) between consecutive checks.
    - `HEROKU_ICON_PATH`: Path to the Heroku icon for notifications.
    - `UP_SOUND`: Path to the sound file for the "app up" notification.
    - `DOWN_SOUND`: Path to the sound file for the "app down" notification.
-   - `export HEROKU_ICON_PATH="/path/to/your/heroku_icon.png"
+   - `HEROKU_ICON_PATH`: Path to the heroku icon
 
 4. Optionally, modify the log file path in the script to point to your desired location:
 

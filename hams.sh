@@ -2,8 +2,9 @@
 
 export DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-unix:path=/run/user/${UID}/bus}"
 
-HAMS_APP="achieve-api-staging"
-HAMS_INTERVAL=1200 #seconds
+# Configurations
+HAMS_APP="${HAMS_APP:-achieve-api-staging}"
+HAMS_INTERVAL="${HAMS_INTERVAL:-15}" # seconds
 HEROKU_ICON_PATH="/usr/share/icons/heroku/legacy.png"
 UP_SOUND="/usr/share/sounds/freedesktop/stereo/service-login.oga"
 DOWN_SOUND="/usr/share/sounds/freedesktop/stereo/service-logout.oga"
@@ -11,25 +12,30 @@ LOG_FILE="/home/kofiasare/Desktop/.hams/log/$HAMS_APP.log"
 
 
 log() {
-    local message=$1
-    timestamp=$(date +"%Y-%m-%d %H:%M:%S")
-    echo "$HAMS_APP | [$timestamp] - $message" >> $LOG_FILE
+    local app=$1
+    local message=$2
+    echo "$app | [$(date +"%Y-%m-%d %H:%M:%S")] - $message" >> $LOG_FILE
 }
 
-send_notification() {
-    local sound=$1
-    local title=$2
+notify_with_log() {
+    local app=$1
+    local sound=$2
     local message=$3
-    notify-send -i "$HEROKU_ICON_PATH" "Heroku ( "$title" )" "$message" && paplay "$sound"
+
+    notify-send -i "$HEROKU_ICON_PATH" "Heroku ( $app )" "$message" && paplay "$sound"
+    log "$app" "$message"
 }
 
 restart_app() {
+    local app=$1
+
     log "Restarting Heroku app..."
-    heroku ps:restart --app $HAMS_APP
+    heroku ps:restart --app $app
     log "Heroku app restarted."
 }
 
-check_internet_connection() {
+can_connect_to() {
+    local app=$1
     local max_retries=3
     local retries=0
     local backoff_time=30 #seconds
@@ -40,7 +46,7 @@ check_internet_connection() {
         fi
 
         retries=$((retries + 1))
-        log "Connection attempt $retries failed. Retrying in $backoff_time seconds..."
+        log "$app" "Connection attempt $retries failed. Retrying in $backoff_time seconds..."
         sleep $backoff_time
 
         # Increase backoff time for the next retry (exponential backoff)
@@ -51,29 +57,40 @@ check_internet_connection() {
 }
 
 check_app_status() {
-    if ! check_internet_connection; then
-        send_notification "$DOWN_SOUND" "$HAMS_APP" "❌ No internet connection! Check your internet connection"
-        return
-    fi
+    local app=$1
 
-    response=$(heroku ps --app $HAMS_APP)
-    if [[ $response == *"web.1: up"* ]]; then
-        send_notification "$UP_SOUND" "$HAMS_APP" "✅ API is up and running!"
+    if can_connect_to "$app"; then
+        if heroku ps --app "$app" | grep -q "web.1: up"; then
+            return 0
+        else
+            return 1
+        fi
     else
-        send_notification "$DOWN_SOUND" "$HAMS_APP" "❌ API is not responding! Trying to restart..."
-        restart_app
+        return 2
     fi
 }
 
-
-
 # Infinite loop to check the status intermittently
 while true; do
-    log "Checking the status of the Heroku app.."
-    check_app_status
+    log "$HAMS_APP" "Checking the status of the Heroku app..."
+    check_app_status "$HAMS_APP"
+
+    case $? in
+        0)
+            notify_with_log "$HAMS_APP" "$UP_SOUND"  "✅ API is up and running!"
+            ;;
+        1)
+            notify_with_log "$HAMS_APP" "$DOWN_SOUND" "❌ API is not responding! Trying to restart..."
+            restart_app $HAMS_APP
+            ;;
+        2)
+            notify_with_log  "$HAMS_APP" "$DOWN_SOUND" "❌ No internet connection! Check your internet connection"
+            ;;
+
+    esac
 
     next_run=$(date -d "+$HAMS_INTERVAL seconds" +"%Y-%m-%d %H:%M:%S")
-    log "Next run: $next_run"
+    log "$HAMS_APP" "Next run: $next_run"
 
     sleep $HAMS_INTERVAL
 done
